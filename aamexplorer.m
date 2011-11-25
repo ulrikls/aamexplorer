@@ -22,7 +22,7 @@ function varargout = aamexplorer(varargin)
 
 % Edit the above text to modify the response to help aamexplorer
 
-% Last Modified by GUIDE v2.5 24-Nov-2011 13:22:04
+% Last Modified by GUIDE v2.5 24-Nov-2011 16:50:34
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -52,9 +52,13 @@ function aamexplorer_OpeningFcn(hObject, eventdata, handles, varargin)
 % handles    structure with handles and user data (see GUIDATA)
 % varargin   command line arguments to aamexplorer (see VARARGIN)
 
-% Variables: mshape, mgray, Qshape, Qgray, sigma2c, dimensions
-if size(varargin,2) == 1 && isstruct(varargin{1})
+% Variables: mshape, mgray, Qshape, Qgray, sigma2c, dimensions, [c]
+if size(varargin,2) < 6 && isstruct(varargin{1})
   handles.model = varargin{1};
+  if size(varargin,2) > 1
+    handles.model.c = varargin{2};
+    set(handles.buttoninitial, 'Enable', 'on');
+  end
 elseif size(varargin,2) >= 6
   handles.model.mshape = varargin{1};
   handles.model.mgray = varargin{2};
@@ -62,6 +66,10 @@ elseif size(varargin,2) >= 6
   handles.model.Qgray = varargin{4};
   handles.model.sigma2c = varargin{5};
   handles.model.dimensions = varargin{6};
+  if size(varargin,2) > 6
+    handles.model.c = varargin{7};
+    set(handles.buttoninitial, 'Enable', 'on');
+  end
 else
   error('AAMexplorer:nomodel', 'No active appearance model given.');
 end
@@ -113,7 +121,8 @@ set(handles.axesxy, 'Position', [margin(4), margin(3), panelw-margin(2)-margin(4
 set(handles.axesyz, 'Position', [margin(4), margin(3), panelw-margin(2)-margin(4), panelh-margin(1)-margin(3)]);
 set(handles.axes3d, 'Position', [margin(4), margin(3), panelw-margin(2)-margin(4), panelh-margin(1)-margin(3)]);
 set(handles.axesxz, 'Position', [margin(4), margin(3), panelw-margin(2)-margin(4), panelh-margin(1)-margin(3)]);
-set(handles.buttonreset, 'Position', [8, height-37, 83, 21]);
+set(handles.buttonreset,   'Position', [8,  height-37, 78, 21]);
+set(handles.buttoninitial, 'Position', [94, height-37, 78, 21]);
 set(handles.param1, 'Position', [8, height-60 , 164, 15]);
 set(handles.param2, 'Position', [8, height-83 , 164, 15]);
 set(handles.param3, 'Position', [8, height-106, 164, 15]);
@@ -173,13 +182,13 @@ axes(ax)
 cla;
 fv = isosurface(shape, 0);
 patch(fv, 'FaceColor', [0 1 0], 'EdgeColor', 'none');
+axis off equal tight vis3d;
+rotate3d(ax,'on');
 lh = camlight('left');
 set(lh, 'Color', [.5 .5 .5]);
 lh = camlight('right');
 set(lh, 'Color', [.5 .5 .5]);
 lighting gouraud;
-axis off equal tight vis3d;
-rotate3d(ax,'on');
 view(3);
 
 
@@ -194,6 +203,21 @@ set(handles.param2, 'Value', 0);
 set(handles.param3, 'Value', 0);
 set(handles.param4, 'Value', 0);
 set(handles.param5, 'Value', 0);
+param_Callback(hObject, eventdata, handles);
+
+
+% --- Executes on button press in buttoninitial.
+function buttoninitial_Callback(hObject, eventdata, handles)
+% hObject    handle to buttoninitial (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+c = handles.model.c ./ sqrt(handles.model.sigma2c) ./ (-2);
+set(handles.param1, 'Value', c(1));
+set(handles.param2, 'Value', c(2));
+set(handles.param3, 'Value', c(3));
+set(handles.param4, 'Value', c(4));
+set(handles.param5, 'Value', c(5));
 param_Callback(hObject, eventdata, handles);
 
 
