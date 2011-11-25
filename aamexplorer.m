@@ -179,6 +179,7 @@ hold off;
 
 function plot3d(ax, shape)
 axes(ax)
+[az,el] = view(ax);
 cla;
 fv = isosurface(shape, 0);
 patch(fv, 'FaceColor', [0 1 0], 'EdgeColor', 'none');
@@ -189,7 +190,11 @@ set(lh, 'Color', [.5 .5 .5]);
 lh = camlight('right');
 set(lh, 'Color', [.5 .5 .5]);
 lighting gouraud;
-view(3);
+if az==0 && el==90
+  view(ax,3);
+else
+  view(ax,az,el);
+end
 
 
 % --- Executes on button press in buttonreset.
