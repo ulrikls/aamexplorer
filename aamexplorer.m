@@ -22,7 +22,7 @@ function varargout = aamexplorer(varargin)
 
 % Edit the above text to modify the response to help aamexplorer
 
-% Last Modified by GUIDE v2.5 24-Nov-2011 16:50:34
+% Last Modified by GUIDE v2.5 26-Nov-2011 22:09:32
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -74,6 +74,9 @@ else
   error('AAMexplorer:nomodel', 'No active appearance model given.');
 end
 
+% GUI state
+handles.state.cursor = fix(handles.model.dimensions ./ 2);
+
 % Choose default command line output for aamexplorer
 handles.output = hObject;
 
@@ -82,6 +85,7 @@ guidata(hObject, handles);
 
 % UIWAIT makes aamexplorer wait for user response (see UIRESUME)
 % uiwait(handles.main);
+param_Callback(hObject, eventdata, handles)
 
 
 % --- Outputs from this function are returned to the command line.
@@ -147,33 +151,52 @@ c(4) = get(handles.param4, 'Value');
 c(5) = get(handles.param5, 'Value');
 c = c .* 2 .* sqrt(handles.model.sigma2c);
 
-shape = handles.model.mshape + handles.model.Qshape * c;
-shape = reshape(shape, handles.model.dimensions);
-gray = handles.model.mgray + handles.model.Qgray * c;
-gray = reshape(gray, handles.model.dimensions);
+handles.state.shape = reshape(handles.model.mshape + handles.model.Qshape * c, ...
+  handles.model.dimensions);
+handles.state.gray = reshape(handles.model.mgray + handles.model.Qgray * c, ...
+  handles.model.dimensions);
 
-% X-Y
-slice = fix(handles.model.dimensions(3)/2);
-plotplane(handles.axesxy, rot90(squeeze(shape(:,:,slice))), rot90(squeeze(gray(:,:,slice))));
+guidata(hObject, handles);
 
-% Y-Z
-slice = fix(handles.model.dimensions(1)/2);
-plotplane(handles.axesyz, rot90(squeeze(shape(slice,:,:))',2), rot90(squeeze(gray(slice,:,:))',2));
-
-% X-Z
-slice = fix(handles.model.dimensions(2)/2);
-plotplane(handles.axesxz, rot90(squeeze(shape(:,slice,:))), rot90(squeeze(gray(:,slice,:))));
+plotplanes(handles);
 
 % 3-D
-plot3d(handles.axes3d, shape);
+plot3d(handles.axes3d, handles.state.shape);
 
 
-function plotplane(ax, shape, gray)
+function plotplanes(handles)
+
+% X-Y
+slice = handles.state.cursor(3);
+plotplane(handles.axesxy, ...
+  rot90(squeeze(handles.state.shape(:,:,slice))), ...
+  rot90(squeeze(handles.state.gray(:,:,slice))), ...
+  [handles.state.cursor(1), handles.state.cursor(2)]);
+
+% Y-Z
+slice = handles.state.cursor(1);
+plotplane(handles.axesyz, ...
+  rot90(squeeze(handles.state.shape(slice,:,:))',2), ...
+  rot90(squeeze(handles.state.gray(slice,:,:))',2), ...
+  [handles.state.cursor(2), handles.state.cursor(3)]);
+
+% X-Z
+slice = handles.state.cursor(2);
+plotplane(handles.axesxz, ...
+  rot90(squeeze(handles.state.shape(:,slice,:))), ...
+  rot90(squeeze(handles.state.gray(:,slice,:))), ...
+  [handles.state.cursor(1), handles.state.cursor(3)]);
+
+
+
+function plotplane(ax, shape, gray, cursor)
 axes(ax);
 cla;
 imshow(gray, [-450 1050]);
 hold on;
 contour(shape, [0 0], 'g');
+line([cursor(1) cursor(1)], get(ax, 'YLim'), 'Color', [.4 .8 1], 'LineStyle', ':');
+line(get(ax, 'XLim'), [cursor(2) cursor(2)], 'Color', [.4 .8 1], 'LineStyle', ':');
 hold off;
 
 
@@ -184,7 +207,7 @@ cla;
 fv = isosurface(shape, 0);
 patch(fv, 'FaceColor', [0 1 0], 'EdgeColor', 'none');
 axis off equal tight vis3d;
-rotate3d(ax,'on');
+%rotate3d(ax,'on');
 lh = camlight('left');
 set(lh, 'Color', [.5 .5 .5]);
 lh = camlight('right');
@@ -234,7 +257,7 @@ function param1_CreateFcn(hObject, eventdata, handles)
 
 % Hint: slider controls usually have a light gray background.
 if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor',[.9 .9 .9]);
+  set(hObject,'BackgroundColor',[.9 .9 .9]);
 end
 
 
@@ -246,7 +269,7 @@ function param2_CreateFcn(hObject, eventdata, handles)
 
 % Hint: slider controls usually have a light gray background.
 if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor',[.9 .9 .9]);
+  set(hObject,'BackgroundColor',[.9 .9 .9]);
 end
 
 
@@ -258,7 +281,7 @@ function param3_CreateFcn(hObject, eventdata, handles)
 
 % Hint: slider controls usually have a light gray background.
 if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor',[.9 .9 .9]);
+  set(hObject,'BackgroundColor',[.9 .9 .9]);
 end
 
 
@@ -270,7 +293,7 @@ function param4_CreateFcn(hObject, eventdata, handles)
 
 % Hint: slider controls usually have a light gray background.
 if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor',[.9 .9 .9]);
+  set(hObject,'BackgroundColor',[.9 .9 .9]);
 end
 
 
@@ -282,5 +305,53 @@ function param5_CreateFcn(hObject, eventdata, handles)
 
 % Hint: slider controls usually have a light gray background.
 if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor',[.9 .9 .9]);
+  set(hObject,'BackgroundColor',[.9 .9 .9]);
 end
+
+
+% --- Executes on scroll wheel click while the figure is in focus.
+function main_WindowScrollWheelFcn(hObject, eventdata, handles)
+% hObject    handle to main (see GCBO)
+% eventdata  structure with the following fields (see FIGURE)
+%	VerticalScrollCount: signed integer indicating direction and number of clicks
+%	VerticalScrollAmount: number of lines scrolled for each click
+% handles    structure with handles and user data (see GUIDATA)
+
+pointer = get(hObject, 'CurrentPoint');
+
+xypanelpos = get(handles.panelxy, 'Position');
+xypos = get(handles.axesxy, 'Position');
+xypos(1:2) = xypanelpos(1:2) + xypos(1:2);
+
+yzpanelpos = get(handles.panelyz, 'Position');
+yzpos = get(handles.axesyz, 'Position');
+yzpos(1:2) = yzpanelpos(1:2) + yzpos(1:2);
+
+xzpanelpos = get(handles.panelxz, 'Position');
+xzpos = get(handles.axesxz, 'Position');
+xzpos(1:2) = xzpanelpos(1:2) + xzpos(1:2);
+
+% Within X-Z figure
+if pointer(1) > xypos(1) && pointer(1) < xypos(1) + xypos(3) && ...
+    pointer(2) > xypos(2) && pointer(2) < xypos(2) + xypos(4)
+  z = handles.state.cursor(3) + eventdata.VerticalScrollCount;
+  handles.state.cursor(3) = max(min(z, handles.model.dimensions(3)), 1);
+  % Within Y-Z figure
+elseif pointer(1) > yzpos(1) && pointer(1) < yzpos(1) + yzpos(3) && ...
+    pointer(2) > yzpos(2) && pointer(2) < yzpos(2) + yzpos(4)
+  x = handles.state.cursor(1) + eventdata.VerticalScrollCount;
+  handles.state.cursor(1) = max(min(x, handles.model.dimensions(1)), 1);
+  % Within X-Z figure
+elseif pointer(1) > xzpos(1) && pointer(1) < xzpos(1) + xzpos(3) && ...
+    pointer(2) > xzpos(2) && pointer(2) < xzpos(2) + xzpos(4)
+  y = handles.state.cursor(2) + eventdata.VerticalScrollCount;
+  handles.state.cursor(2) = max(min(y, handles.model.dimensions(2)), 1);
+end
+
+guidata(hObject, handles);
+
+plotplanes(handles);
+
+
+
+
