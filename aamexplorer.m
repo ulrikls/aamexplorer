@@ -77,6 +77,15 @@ end
 % GUI state
 handles.state.cursor = fix(handles.model.dimensions ./ 2);
 
+% 3-D plot initialization
+handles.cursor3dx = line('Parent', handles.axes3d, 'Color', [0 0 1], 'LineStyle', '--');
+handles.cursor3dy = line('Parent', handles.axes3d, 'Color', [0 0 1], 'LineStyle', '--');
+handles.cursor3dz = line('Parent', handles.axes3d, 'Color', [0 0 1], 'LineStyle', '--');
+handles.patch3d = patch('FaceColor', [0 1 0], 'EdgeColor', 'none', 'Parent', handles.axes3d, ...
+  'FaceLighting', 'gouraud', 'EdgeLighting', 'gouraud');
+set(handles.axes3d, 'YDir', 'reverse');
+view(handles.axes3d, 3);
+
 % Choose default command line output for aamexplorer
 handles.output = hObject;
 
@@ -85,7 +94,14 @@ guidata(hObject, handles);
 
 % UIWAIT makes aamexplorer wait for user response (see UIRESUME)
 % uiwait(handles.main);
-param_Callback(hObject, eventdata, handles)
+
+param_Callback(hObject, eventdata, handles);
+cursor3d(hObject);
+
+lh = camlight('left');
+set(lh, 'Color', [.5 .5 .5], 'Parent', handles.axes3d);
+lh = camlight('right');
+set(lh, 'Color', [.5 .5 .5], 'Parent', handles.axes3d);
 
 
 % --- Outputs from this function are returned to the command line.
@@ -104,8 +120,6 @@ function main_ResizeFcn(hObject, eventdata, handles)
 % hObject    handle to main (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-cla(handles.axes3d);
 
 pos = get(hObject, 'Position');
 width = pos(3);
@@ -158,66 +172,82 @@ handles.state.gray = reshape(handles.model.mgray + handles.model.Qgray * c, ...
 
 guidata(hObject, handles);
 
-plotplanes(handles);
+plotplanes(hObject);
 
 % 3-D
-plot3d(handles.axes3d, handles.state.shape);
+plot3d(hObject);
 
 
-function plotplanes(handles)
+function plotplanes(hObject)
+handles = guidata(hObject);
 
 % X-Y
 slice = handles.state.cursor(3);
 plotplane(handles.axesxy, ...
-  rot90(squeeze(handles.state.shape(:,:,slice))), ...
-  rot90(squeeze(handles.state.gray(:,:,slice))), ...
+  permute(squeeze(handles.state.shape(:,:,slice)), [2 1]), ...
+  permute(squeeze(handles.state.gray(:,:,slice)), [2 1]), ...
   [handles.state.cursor(1), handles.state.cursor(2)]);
 
 % Y-Z
 slice = handles.state.cursor(1);
 plotplane(handles.axesyz, ...
-  rot90(squeeze(handles.state.shape(slice,:,:))',2), ...
-  rot90(squeeze(handles.state.gray(slice,:,:))',2), ...
+  permute(squeeze(handles.state.shape(slice,:,:)), [2 1]), ...
+  permute(squeeze(handles.state.gray(slice,:,:)), [2 1]), ...
   [handles.state.cursor(2), handles.state.cursor(3)]);
 
 % X-Z
 slice = handles.state.cursor(2);
 plotplane(handles.axesxz, ...
-  rot90(squeeze(handles.state.shape(:,slice,:))), ...
-  rot90(squeeze(handles.state.gray(:,slice,:))), ...
+  permute(squeeze(handles.state.shape(:,slice,:)), [2 1]), ...
+  permute(squeeze(handles.state.gray(:,slice,:)), [2 1]), ...
   [handles.state.cursor(1), handles.state.cursor(3)]);
 
 
 
 function plotplane(ax, shape, gray, cursor)
-axes(ax);
-cla;
-imshow(gray, [-450 1050]);
-hold on;
-contour(shape, [0 0], 'g');
-line([cursor(1) cursor(1)], get(ax, 'YLim'), 'Color', [.4 .8 1], 'LineStyle', ':');
-line(get(ax, 'XLim'), [cursor(2) cursor(2)], 'Color', [.4 .8 1], 'LineStyle', ':');
-hold off;
+cla(ax);
+imshow(gray, [-450 1050], 'Parent', ax);
+set(ax, 'YDir', 'normal', 'XDir', 'reverse');
+hold(ax, 'on');
+contour(ax, shape, [0 0], 'g');
+line([cursor(1) cursor(1)], get(ax, 'YLim'), 'Color', [.4 .8 1], 'LineStyle', ':', 'Parent', ax);
+line(get(ax, 'XLim'), [cursor(2) cursor(2)], 'Color', [.4 .8 1], 'LineStyle', ':', 'Parent', ax);
+hold(ax, 'off');
 
 
-function plot3d(ax, shape)
-axes(ax)
-[az,el] = view(ax);
-cla;
-fv = isosurface(shape, 0);
-patch(fv, 'FaceColor', [0 1 0], 'EdgeColor', 'none');
-axis off equal tight vis3d;
-%rotate3d(ax,'on');
-lh = camlight('left');
-set(lh, 'Color', [.5 .5 .5]);
-lh = camlight('right');
-set(lh, 'Color', [.5 .5 .5]);
-lighting gouraud;
-if az==0 && el==90
-  view(ax,3);
-else
-  view(ax,az,el);
-end
+function plot3d(hObject)
+handles = guidata(hObject);
+
+[f,v] = isosurface(handles.state.shape, 0);
+set(handles.patch3d, 'Faces', f, 'Vertices', v);
+axis(handles.axes3d, 'off', 'equal', 'tight', 'vis3d');
+set(handles.axes3d, 'XLim', [min(v(:,1)) max(v(:,1))], ...
+  'YLim', [min(v(:,2)) max(v(:,2))], ...
+  'ZLim', [min(v(:,3)) max(v(:,3))]);
+
+guidata(hObject, handles);
+
+
+function cursor3d(hObject)
+handles = guidata(hObject);
+
+cursor = handles.state.cursor;
+ax = handles.axes3d;
+xlimit = get(ax, 'XLim');
+ylimit = get(ax, 'YLim');
+zlimit = get(ax, 'ZLim');
+xlimit = [0 2*xlimit(2)];
+ylimit = [0 2*ylimit(2)];
+zlimit = [0 2*zlimit(2)];
+
+set(handles.cursor3dx, 'YData', [cursor(1) cursor(1)], ...
+  'XData', [cursor(2) cursor(2)], 'ZData', zlimit);
+set(handles.cursor3dy, 'YData', xlimit, ...
+  'XData', [cursor(2) cursor(2)], 'ZData', [cursor(3) cursor(3)]);
+set(handles.cursor3dz, 'YData', [cursor(1) cursor(1)], ...
+  'XData', ylimit, 'ZData', [cursor(3) cursor(3)]);
+
+guidata(hObject, handles);
 
 
 % --- Executes on button press in buttonreset.
@@ -334,7 +364,7 @@ xzpos(1:2) = xzpanelpos(1:2) + xzpos(1:2);
 % Within X-Z figure
 if pointer(1) > xypos(1) && pointer(1) < xypos(1) + xypos(3) && ...
     pointer(2) > xypos(2) && pointer(2) < xypos(2) + xypos(4)
-  z = handles.state.cursor(3) + eventdata.VerticalScrollCount;
+  z = handles.state.cursor(3) - eventdata.VerticalScrollCount;
   handles.state.cursor(3) = max(min(z, handles.model.dimensions(3)), 1);
   % Within Y-Z figure
 elseif pointer(1) > yzpos(1) && pointer(1) < yzpos(1) + yzpos(3) && ...
@@ -347,11 +377,11 @@ elseif pointer(1) > xzpos(1) && pointer(1) < xzpos(1) + xzpos(3) && ...
   y = handles.state.cursor(2) + eventdata.VerticalScrollCount;
   handles.state.cursor(2) = max(min(y, handles.model.dimensions(2)), 1);
 end
-
+disp(handles.state.cursor)
 guidata(hObject, handles);
 
-plotplanes(handles);
-
+plotplanes(hObject);
+cursor3d(hObject);
 
 
 
