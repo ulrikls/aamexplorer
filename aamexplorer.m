@@ -77,12 +77,34 @@ end
 % GUI state
 handles.state.cursor = fix(handles.model.dimensions ./ 2);
 
+% 2-D plots initialization
+colormap('gray');
+
+handles.imagexy = image('Parent', handles.axesxy, 'CDataMapping', 'scaled');
+handles.cursorxy1 = line('Parent', handles.axesxy, 'Color', [.4 .8 1], 'LineStyle', ':', 'XLimInclude', 'off', 'YLimInclude', 'off');
+handles.cursorxy2 = line('Parent', handles.axesxy, 'Color', [.4 .8 1], 'LineStyle', ':', 'XLimInclude', 'off', 'YLimInclude', 'off');
+set(handles.axesxy, 'YDir', 'normal', 'XDir', 'reverse', 'NextPlot', 'add', 'CLim', [-450 1050], 'CLimInclude', 'off');
+handles.contourxy = 0;
+
+handles.imageyz = image('Parent', handles.axesyz, 'CDataMapping', 'scaled');
+handles.cursoryz1 = line('Parent', handles.axesyz, 'Color', [.4 .8 1], 'LineStyle', ':', 'XLimInclude', 'off', 'YLimInclude', 'off');
+handles.cursoryz2 = line('Parent', handles.axesyz, 'Color', [.4 .8 1], 'LineStyle', ':', 'XLimInclude', 'off', 'YLimInclude', 'off');
+set(handles.axesyz, 'YDir', 'normal', 'XDir', 'reverse', 'NextPlot', 'add', 'CLim', [-450 1050], 'CLimInclude', 'off');
+handles.contouryz = 0;
+
+handles.imagexz = image('Parent', handles.axesxz, 'CDataMapping', 'scaled');
+handles.cursorxz1 = line('Parent', handles.axesxz, 'Color', [.4 .8 1], 'LineStyle', ':', 'XLimInclude', 'off', 'YLimInclude', 'off');
+handles.cursorxz2 = line('Parent', handles.axesxz, 'Color', [.4 .8 1], 'LineStyle', ':', 'XLimInclude', 'off', 'YLimInclude', 'off');
+set(handles.axesxz, 'YDir', 'normal', 'XDir', 'reverse', 'NextPlot', 'add', 'CLim', [-450 1050], 'CLimInclude', 'off');
+handles.contourxz = 0;
+
 % 3-D plot initialization
-handles.cursor3dx = line('Parent', handles.axes3d, 'Color', [0 0 1], 'LineStyle', '--');
-handles.cursor3dy = line('Parent', handles.axes3d, 'Color', [0 0 1], 'LineStyle', '--');
-handles.cursor3dz = line('Parent', handles.axes3d, 'Color', [0 0 1], 'LineStyle', '--');
+handles.cursor3dx = line('Parent', handles.axes3d, 'Color', [0 0 1], 'LineStyle', '--', 'XLimInclude', 'off', 'YLimInclude', 'off');
+handles.cursor3dy = line('Parent', handles.axes3d, 'Color', [0 0 1], 'LineStyle', '--', 'XLimInclude', 'off', 'YLimInclude', 'off');
+handles.cursor3dz = line('Parent', handles.axes3d, 'Color', [0 0 1], 'LineStyle', '--', 'XLimInclude', 'off', 'YLimInclude', 'off');
 handles.patch3d = patch('FaceColor', [0 1 0], 'EdgeColor', 'none', 'Parent', handles.axes3d, ...
-  'FaceLighting', 'gouraud', 'EdgeLighting', 'gouraud');
+  'FaceLighting', 'gouraud', 'EdgeLighting', 'gouraud', ...
+  'XLimInclude', 'off', 'YLimInclude', 'off', 'ZLimInclude', 'off');
 set(handles.axes3d, 'YDir', 'reverse');
 view(handles.axes3d, 3);
 
@@ -96,7 +118,7 @@ guidata(hObject, handles);
 % uiwait(handles.main);
 
 param_Callback(hObject, eventdata, handles);
-cursor3d(hObject);
+moveCursor(hObject);
 
 lh = camlight('left');
 set(lh, 'Color', [.5 .5 .5], 'Parent', handles.axes3d);
@@ -172,47 +194,70 @@ handles.state.gray = reshape(handles.model.mgray + handles.model.Qgray * c, ...
 
 guidata(hObject, handles);
 
-plotplanes(hObject);
+plotxy(hObject);
+plotyz(hObject);
+plotxz(hObject);
 
 % 3-D
 plot3d(hObject);
 
 
-function plotplanes(hObject)
+function plotxy(hObject)
 handles = guidata(hObject);
 
-% X-Y
 slice = handles.state.cursor(3);
-plotplane(handles.axesxy, ...
-  permute(squeeze(handles.state.shape(:,:,slice)), [2 1]), ...
-  permute(squeeze(handles.state.gray(:,:,slice)), [2 1]), ...
-  [handles.state.cursor(1), handles.state.cursor(2)]);
+shape = permute(squeeze(handles.state.shape(:,:,slice)), [2 1]);
+gray = permute(squeeze(handles.state.gray(:,:,slice)), [2 1]);
 
-% Y-Z
+set(handles.imagexy, 'CData', gray);
+axis(handles.axesxy, 'off', 'equal');
+
+if handles.contourxy
+  delete(handles.contourxy);
+  handles.contourxy = 0;
+end
+[~,handles.contourxy] = contour(handles.axesxy, shape, [0 0], 'g');
+
+guidata(hObject, handles);
+
+
+function plotyz(hObject)
+handles = guidata(hObject);
+
 slice = handles.state.cursor(1);
-plotplane(handles.axesyz, ...
-  permute(squeeze(handles.state.shape(slice,:,:)), [2 1]), ...
-  permute(squeeze(handles.state.gray(slice,:,:)), [2 1]), ...
-  [handles.state.cursor(2), handles.state.cursor(3)]);
+shape = permute(squeeze(handles.state.shape(slice,:,:)), [2 1]);
+gray = permute(squeeze(handles.state.gray(slice,:,:)), [2 1]);
+
+set(handles.imageyz, 'CData', gray);
+axis(handles.axesyz, 'off', 'equal');
+
+if handles.contouryz
+  delete(handles.contouryz);
+  handles.contouryz = 0;
+end
+[~,handles.contouryz] = contour(handles.axesyz, shape, [0 0], 'g');
+
+guidata(hObject, handles);
+
+
+function plotxz(hObject)
+handles = guidata(hObject);
 
 % X-Z
 slice = handles.state.cursor(2);
-plotplane(handles.axesxz, ...
-  permute(squeeze(handles.state.shape(:,slice,:)), [2 1]), ...
-  permute(squeeze(handles.state.gray(:,slice,:)), [2 1]), ...
-  [handles.state.cursor(1), handles.state.cursor(3)]);
+shape = permute(squeeze(handles.state.shape(:,slice,:)), [2 1]);
+gray = permute(squeeze(handles.state.gray(:,slice,:)), [2 1]);
 
+set(handles.imagexz, 'CData', gray);
+axis(handles.axesxz, 'off', 'equal');
 
+if handles.contourxz
+  delete(handles.contourxz);
+  handles.contourxz = 0;
+end
+[~,handles.contourxz] = contour(handles.axesxz, shape, [0 0], 'g');
 
-function plotplane(ax, shape, gray, cursor)
-cla(ax);
-imshow(gray, [-450 1050], 'Parent', ax);
-set(ax, 'YDir', 'normal', 'XDir', 'reverse');
-hold(ax, 'on');
-contour(ax, shape, [0 0], 'g');
-line([cursor(1) cursor(1)], get(ax, 'YLim'), 'Color', [.4 .8 1], 'LineStyle', ':', 'Parent', ax);
-line(get(ax, 'XLim'), [cursor(2) cursor(2)], 'Color', [.4 .8 1], 'LineStyle', ':', 'Parent', ax);
-hold(ax, 'off');
+guidata(hObject, handles);
 
 
 function plot3d(hObject)
@@ -220,7 +265,7 @@ handles = guidata(hObject);
 
 [f,v] = isosurface(handles.state.shape, 0);
 set(handles.patch3d, 'Faces', f, 'Vertices', v);
-axis(handles.axes3d, 'off', 'equal', 'tight', 'vis3d');
+axis(handles.axes3d, 'off', 'equal', 'vis3d');
 set(handles.axes3d, 'XLim', [min(v(:,1)) max(v(:,1))], ...
   'YLim', [min(v(:,2)) max(v(:,2))], ...
   'ZLim', [min(v(:,3)) max(v(:,3))]);
@@ -228,7 +273,7 @@ set(handles.axes3d, 'XLim', [min(v(:,1)) max(v(:,1))], ...
 guidata(hObject, handles);
 
 
-function cursor3d(hObject)
+function moveCursor(hObject)
 handles = guidata(hObject);
 
 cursor = handles.state.cursor;
@@ -236,9 +281,9 @@ ax = handles.axes3d;
 xlimit = get(ax, 'XLim');
 ylimit = get(ax, 'YLim');
 zlimit = get(ax, 'ZLim');
-xlimit = [0 2*xlimit(2)];
-ylimit = [0 2*ylimit(2)];
-zlimit = [0 2*zlimit(2)];
+xlimit = [-100 2*xlimit(2)];
+ylimit = [-100 2*ylimit(2)];
+zlimit = [-100 2*zlimit(2)];
 
 set(handles.cursor3dx, 'YData', [cursor(1) cursor(1)], ...
   'XData', [cursor(2) cursor(2)], 'ZData', zlimit);
@@ -246,6 +291,15 @@ set(handles.cursor3dy, 'YData', xlimit, ...
   'XData', [cursor(2) cursor(2)], 'ZData', [cursor(3) cursor(3)]);
 set(handles.cursor3dz, 'YData', [cursor(1) cursor(1)], ...
   'XData', ylimit, 'ZData', [cursor(3) cursor(3)]);
+
+set(handles.cursorxy1, 'XData', [cursor(1) cursor(1)], 'YData', get(handles.axesxy, 'YLim'));
+set(handles.cursorxy2, 'XData', get(handles.axesxy, 'XLim'), 'YData', [cursor(2) cursor(2)]);
+
+set(handles.cursoryz1, 'XData', [cursor(2) cursor(2)], 'YData', get(handles.axesyz, 'YLim'));
+set(handles.cursoryz2, 'XData', get(handles.axesyz, 'XLim'), 'YData', [cursor(3) cursor(3)]);
+
+set(handles.cursorxz1, 'XData', [cursor(1) cursor(1)], 'YData', get(handles.axesxz, 'YLim'));
+set(handles.cursorxz2, 'XData', get(handles.axesxz, 'XLim'), 'YData', [cursor(3) cursor(3)]);
 
 guidata(hObject, handles);
 
@@ -361,27 +415,32 @@ xzpanelpos = get(handles.panelxz, 'Position');
 xzpos = get(handles.axesxz, 'Position');
 xzpos(1:2) = xzpanelpos(1:2) + xzpos(1:2);
 
-% Within X-Z figure
+% Within X-Y figure
 if pointer(1) > xypos(1) && pointer(1) < xypos(1) + xypos(3) && ...
     pointer(2) > xypos(2) && pointer(2) < xypos(2) + xypos(4)
   z = handles.state.cursor(3) - eventdata.VerticalScrollCount;
   handles.state.cursor(3) = max(min(z, handles.model.dimensions(3)), 1);
+  guidata(hObject, handles);
+  plotxy(hObject);
+  
   % Within Y-Z figure
 elseif pointer(1) > yzpos(1) && pointer(1) < yzpos(1) + yzpos(3) && ...
     pointer(2) > yzpos(2) && pointer(2) < yzpos(2) + yzpos(4)
   x = handles.state.cursor(1) + eventdata.VerticalScrollCount;
   handles.state.cursor(1) = max(min(x, handles.model.dimensions(1)), 1);
+  guidata(hObject, handles);
+  plotyz(hObject);
+  
   % Within X-Z figure
 elseif pointer(1) > xzpos(1) && pointer(1) < xzpos(1) + xzpos(3) && ...
     pointer(2) > xzpos(2) && pointer(2) < xzpos(2) + xzpos(4)
   y = handles.state.cursor(2) + eventdata.VerticalScrollCount;
   handles.state.cursor(2) = max(min(y, handles.model.dimensions(2)), 1);
+  guidata(hObject, handles);
+  plotxz(hObject);
 end
-disp(handles.state.cursor)
-guidata(hObject, handles);
 
-plotplanes(hObject);
-cursor3d(hObject);
+moveCursor(hObject);
 
 
 
