@@ -22,7 +22,7 @@ function varargout = aamexplorer(varargin)
 
 % Edit the above text to modify the response to help aamexplorer
 
-% Last Modified by GUIDE v2.5 26-Nov-2011 22:09:32
+% Last Modified by GUIDE v2.5 28-Nov-2011 21:26:13
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -103,8 +103,7 @@ handles.cursor3dx = line('Parent', handles.axes3d, 'Color', [0 0 1], 'LineStyle'
 handles.cursor3dy = line('Parent', handles.axes3d, 'Color', [0 0 1], 'LineStyle', '--', 'XLimInclude', 'off', 'YLimInclude', 'off');
 handles.cursor3dz = line('Parent', handles.axes3d, 'Color', [0 0 1], 'LineStyle', '--', 'XLimInclude', 'off', 'YLimInclude', 'off');
 handles.patch3d = patch('FaceColor', [0 1 0], 'EdgeColor', 'none', 'Parent', handles.axes3d, ...
-  'FaceLighting', 'gouraud', 'EdgeLighting', 'gouraud', ...
-  'XLimInclude', 'off', 'YLimInclude', 'off', 'ZLimInclude', 'off');
+  'FaceLighting', 'gouraud', 'EdgeLighting', 'gouraud');
 set(handles.axes3d, 'YDir', 'reverse');
 view(handles.axes3d, 3);
 
@@ -205,7 +204,7 @@ plot3d(hObject);
 function plotxy(hObject)
 handles = guidata(hObject);
 
-slice = handles.state.cursor(3);
+slice = round(handles.state.cursor(3));
 shape = permute(squeeze(handles.state.shape(:,:,slice)), [2 1]);
 gray = permute(squeeze(handles.state.gray(:,:,slice)), [2 1]);
 
@@ -224,7 +223,7 @@ guidata(hObject, handles);
 function plotyz(hObject)
 handles = guidata(hObject);
 
-slice = handles.state.cursor(1);
+slice = round(handles.state.cursor(1));
 shape = permute(squeeze(handles.state.shape(slice,:,:)), [2 1]);
 gray = permute(squeeze(handles.state.gray(slice,:,:)), [2 1]);
 
@@ -244,7 +243,7 @@ function plotxz(hObject)
 handles = guidata(hObject);
 
 % X-Z
-slice = handles.state.cursor(2);
+slice = round(handles.state.cursor(2));
 shape = permute(squeeze(handles.state.shape(:,slice,:)), [2 1]);
 gray = permute(squeeze(handles.state.gray(:,slice,:)), [2 1]);
 
@@ -443,4 +442,64 @@ end
 moveCursor(hObject);
 
 
+% --- Executes on mouse press over figure background, over a disabled or
+% --- inactive control, or over an axes background.
+function main_WindowButtonDownFcn(hObject, eventdata, handles)
+% hObject    handle to main (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
 
+pointer = get(hObject, 'CurrentPoint');
+
+xypanelpos = get(handles.panelxy, 'Position');
+xypos = get(handles.axesxy, 'Position');
+xypos(1:2) = xypanelpos(1:2) + xypos(1:2);
+
+yzpanelpos = get(handles.panelyz, 'Position');
+yzpos = get(handles.axesyz, 'Position');
+yzpos(1:2) = yzpanelpos(1:2) + yzpos(1:2);
+
+xzpanelpos = get(handles.panelxz, 'Position');
+xzpos = get(handles.axesxz, 'Position');
+xzpos(1:2) = xzpanelpos(1:2) + xzpos(1:2);
+
+dim = handles.model.dimensions;
+
+% Within X-Y figure
+if pointer(1) > xypos(1) && pointer(1) < xypos(1) + xypos(3) && ...
+    pointer(2) > xypos(2) && pointer(2) < xypos(2) + xypos(4)
+  coord = get(handles.axesxy, 'CurrentPoint');
+  if coord(1,1) > 0 && coord(1,1) < dim(1) && coord(1,2) > 0 && coord(1,2) < dim(2)
+    handles.state.cursor(1) = coord(1,1);
+    handles.state.cursor(2) = coord(1,2);
+    guidata(hObject, handles);
+    plotyz(hObject);
+    plotxz(hObject);
+  end
+  
+  % Within Y-Z figure
+elseif pointer(1) > yzpos(1) && pointer(1) < yzpos(1) + yzpos(3) && ...
+    pointer(2) > yzpos(2) && pointer(2) < yzpos(2) + yzpos(4)
+  coord = get(handles.axesyz, 'CurrentPoint');
+  if coord(1,1) > 0 && coord(1,1) < dim(2) && coord(1,2) > 0 && coord(1,2) < dim(3)
+    handles.state.cursor(2) = coord(1,1);
+    handles.state.cursor(3) = coord(1,2);
+    guidata(hObject, handles);
+    plotxy(hObject);
+    plotxz(hObject);
+  end
+  
+  % Within X-Z figure
+elseif pointer(1) > xzpos(1) && pointer(1) < xzpos(1) + xzpos(3) && ...
+    pointer(2) > xzpos(2) && pointer(2) < xzpos(2) + xzpos(4)
+  coord = get(handles.axesxz, 'CurrentPoint');
+  if coord(1,1) > 0 && coord(1,1) < dim(1) && coord(1,2) > 0 && coord(1,2) < dim(3)
+    handles.state.cursor(1) = coord(1,1);
+    handles.state.cursor(3) = coord(1,2);
+    guidata(hObject, handles);
+    plotxy(hObject);
+    plotyz(hObject);
+  end
+end
+
+moveCursor(hObject);
