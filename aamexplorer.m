@@ -119,10 +119,10 @@ guidata(hObject, handles);
 param_Callback(hObject, eventdata, handles);
 moveCursor(hObject);
 
-lh = camlight('left');
-set(lh, 'Color', [.5 .5 .5], 'Parent', handles.axes3d);
-lh = camlight('right');
-set(lh, 'Color', [.5 .5 .5], 'Parent', handles.axes3d);
+lhl = light('Color', [.5 .5 .5], 'Parent', handles.axes3d);
+lhr = light('Color', [.5 .5 .5], 'Parent', handles.axes3d);
+camlight(lhl, 'left');
+camlight(lhr, 'right');
 
 
 % --- Outputs from this function are returned to the command line.
@@ -167,6 +167,7 @@ set(handles.param2, 'Position', [8, height-83 , 164, 15]);
 set(handles.param3, 'Position', [8, height-106, 164, 15]);
 set(handles.param4, 'Position', [8, height-129, 164, 15]);
 set(handles.param5, 'Position', [8, height-152, 164, 15]);
+set(handles.textcursor, 'Position', [8 8 164 13]);
 
 
 % --- Executes on parameter slider movement.
@@ -283,6 +284,8 @@ zlimit = get(ax, 'ZLim');
 xlimit = [-100 2*xlimit(2)];
 ylimit = [-100 2*ylimit(2)];
 zlimit = [-100 2*zlimit(2)];
+
+set(handles.textcursor, 'String', sprintf('Cursor (x,y,z): %g, %g, %g\n', cursor(1), cursor(2), cursor(3)));
 
 set(handles.cursor3dx, 'YData', [cursor(1) cursor(1)], ...
   'XData', [cursor(2) cursor(2)], 'ZData', zlimit);
@@ -470,8 +473,8 @@ if pointer(1) > xypos(1) && pointer(1) < xypos(1) + xypos(3) && ...
     pointer(2) > xypos(2) && pointer(2) < xypos(2) + xypos(4)
   coord = get(handles.axesxy, 'CurrentPoint');
   if coord(1,1) > 0 && coord(1,1) < dim(1) && coord(1,2) > 0 && coord(1,2) < dim(2)
-    handles.state.cursor(1) = coord(1,1);
-    handles.state.cursor(2) = coord(1,2);
+    handles.state.cursor(1) = round(coord(1,1));
+    handles.state.cursor(2) = round(coord(1,2));
     guidata(hObject, handles);
     plotyz(hObject);
     plotxz(hObject);
@@ -482,8 +485,8 @@ elseif pointer(1) > yzpos(1) && pointer(1) < yzpos(1) + yzpos(3) && ...
     pointer(2) > yzpos(2) && pointer(2) < yzpos(2) + yzpos(4)
   coord = get(handles.axesyz, 'CurrentPoint');
   if coord(1,1) > 0 && coord(1,1) < dim(2) && coord(1,2) > 0 && coord(1,2) < dim(3)
-    handles.state.cursor(2) = coord(1,1);
-    handles.state.cursor(3) = coord(1,2);
+    handles.state.cursor(2) = round(coord(1,1));
+    handles.state.cursor(3) = round(coord(1,2));
     guidata(hObject, handles);
     plotxy(hObject);
     plotxz(hObject);
@@ -494,8 +497,8 @@ elseif pointer(1) > xzpos(1) && pointer(1) < xzpos(1) + xzpos(3) && ...
     pointer(2) > xzpos(2) && pointer(2) < xzpos(2) + xzpos(4)
   coord = get(handles.axesxz, 'CurrentPoint');
   if coord(1,1) > 0 && coord(1,1) < dim(1) && coord(1,2) > 0 && coord(1,2) < dim(3)
-    handles.state.cursor(1) = coord(1,1);
-    handles.state.cursor(3) = coord(1,2);
+    handles.state.cursor(1) = round(coord(1,1));
+    handles.state.cursor(3) = round(coord(1,2));
     guidata(hObject, handles);
     plotxy(hObject);
     plotyz(hObject);
