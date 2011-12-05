@@ -167,10 +167,10 @@ panelw = fix((width-pw)/2);
 panelh = fix(height/2);
 
 set(handles.panelparam, 'Position', [1, 1, pw, height]);
-set(handles.panelxy, 'Position', [pw,        panelh, panelw, panelh]);
-set(handles.panelyz, 'Position', [pw+panelw, panelh, panelw, panelh]);
-set(handles.panel3d, 'Position', [pw,        1,      panelw, panelh]);
-set(handles.panelxz, 'Position', [pw+panelw, 1,      panelw, panelh]);
+set(handles.panelxy, 'Position', [pw+1,        panelh+1, panelw, panelh]);
+set(handles.panelyz, 'Position', [pw+panelw+1, panelh+1, panelw, panelh]);
+set(handles.panel3d, 'Position', [pw+1,        1,        panelw, panelh]);
+set(handles.panelxz, 'Position', [pw+panelw+1, 1,        panelw, panelh]);
 set(handles.axesxy, 'Position', [margin(4), margin(3), panelw-margin(2)-margin(4), panelh-margin(1)-margin(3)]);
 set(handles.axesyz, 'Position', [margin(4), margin(3), panelw-margin(2)-margin(4), panelh-margin(1)-margin(3)]);
 set(handles.axes3d, 'Position', [margin(4), margin(3), panelw-margin(2)-margin(4), panelh-margin(1)-margin(3)]);
