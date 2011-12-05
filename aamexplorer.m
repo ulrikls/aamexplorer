@@ -64,10 +64,29 @@ if size(varargin,2) < 6 && isstruct(varargin{1})
   handles.model = varargin{1};
   if size(varargin,2) > 1
     handles.model.c = varargin{2};
+  end
+  if isfield(handles.model, 'c')
     set(handles.buttoninitial, 'Enable', 'on');
+  else
+    handles.model.c = zeros(size(handles.model.sigma2c));
   end
 else
   error('AAMexplorer:nomodel', 'No active appearance model given.');
+end
+
+% Parameter sliders
+handles.param = {};
+for i=1:length(handles.model.sigma2c)
+  handles.param{i} = uicontrol(...
+    'Style'        , 'slider', ...
+    'Min'          , -2, ...
+    'Max'          , 2, ...
+    'Value'        , handles.model.c(i) / sqrt(handles.model.sigma2c(i)), ...
+    'Callback'     , @(hObject,eventdata)aamexplorer('param_Callback',hObject,eventdata,guidata(hObject)), ...
+    'parent'       , handles.panelparam, ...
+    'Tag'          , sprintf('param%g', i), ...
+    'TooltipString', sprintf('Parameter %g', i), ...
+    'Units'        , 'pixels');
 end
 
 % GUI state
@@ -158,12 +177,13 @@ set(handles.axes3d, 'Position', [margin(4), margin(3), panelw-margin(2)-margin(4
 set(handles.axesxz, 'Position', [margin(4), margin(3), panelw-margin(2)-margin(4), panelh-margin(1)-margin(3)]);
 set(handles.buttonreset,   'Position', [8,  height-37, 78, 21]);
 set(handles.buttoninitial, 'Position', [94, height-37, 78, 21]);
-set(handles.param1, 'Position', [8, height-60 , 164, 15]);
-set(handles.param2, 'Position', [8, height-83 , 164, 15]);
-set(handles.param3, 'Position', [8, height-106, 164, 15]);
-set(handles.param4, 'Position', [8, height-129, 164, 15]);
-set(handles.param5, 'Position', [8, height-152, 164, 15]);
 set(handles.textcursor, 'Position', [8 8 164 13]);
+
+if isfield(handles, 'param')
+  for i=1:length(handles.param)
+    set(handles.param{i}, 'Position', [8, height-(37 + i*23) , 164, 15]);
+  end
+end
 
 
 % --- Executes on parameter slider movement.
@@ -176,12 +196,10 @@ function param_Callback(hObject, eventdata, handles)
 %        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
 
 c = zeros(length(handles.model.sigma2c),1);
-c(1) = get(handles.param1, 'Value');
-c(2) = get(handles.param2, 'Value');
-c(3) = get(handles.param3, 'Value');
-c(4) = get(handles.param4, 'Value');
-c(5) = get(handles.param5, 'Value');
-c = c .* 2 .* sqrt(handles.model.sigma2c);
+for i=1:length(handles.param)
+  c(i) = get(handles.param{i}, 'Value');
+end
+c = c .* sqrt(handles.model.sigma2c);
 
 handles.state.shape = reshape(handles.model.mshape + handles.model.Qshape * c, ...
   handles.model.dimensions);
@@ -308,11 +326,9 @@ function buttonreset_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-set(handles.param1, 'Value', 0);
-set(handles.param2, 'Value', 0);
-set(handles.param3, 'Value', 0);
-set(handles.param4, 'Value', 0);
-set(handles.param5, 'Value', 0);
+for i=1:length(handles.param)
+  set(handles.param{i}, 'Value', 0);
+end
 param_Callback(hObject, eventdata, handles);
 
 
@@ -322,12 +338,10 @@ function buttoninitial_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-c = handles.model.c ./ sqrt(handles.model.sigma2c) ./ (-2);
-set(handles.param1, 'Value', c(1));
-set(handles.param2, 'Value', c(2));
-set(handles.param3, 'Value', c(3));
-set(handles.param4, 'Value', c(4));
-set(handles.param5, 'Value', c(5));
+c = handles.model.c ./ sqrt(handles.model.sigma2c);
+for i=1:length(handles.param)
+  set(handles.param{i}, 'Value', c(i));
+end
 param_Callback(hObject, eventdata, handles);
 
 
