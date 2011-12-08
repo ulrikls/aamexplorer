@@ -119,7 +119,8 @@ handles.cursor3dx = line('Parent', handles.axes3d, 'Color', [0 0 1], 'LineStyle'
 handles.cursor3dy = line('Parent', handles.axes3d, 'Color', [0 0 1], 'LineStyle', '--', 'XLimInclude', 'off', 'YLimInclude', 'off');
 handles.cursor3dz = line('Parent', handles.axes3d, 'Color', [0 0 1], 'LineStyle', '--', 'XLimInclude', 'off', 'YLimInclude', 'off');
 handles.patch3d = patch('FaceColor', [0 1 0], 'EdgeColor', 'none', 'Parent', handles.axes3d, ...
-  'FaceLighting', 'gouraud', 'EdgeLighting', 'gouraud');
+  'FaceLighting', 'gouraud', 'EdgeLighting', 'gouraud', 'BackFaceLighting', 'lit', ...
+  'AmbientStrength', 0.3, 'DiffuseStrength', 0.8, 'SpecularStrength', 0.0, 'SpecularExponent', 10, 'SpecularColorReflectance', 1.0);
 set(handles.axes3d, 'YDir', 'reverse');
 view(handles.axes3d, 3);
 
@@ -135,10 +136,15 @@ guidata(hObject, handles);
 param_Callback(hObject, eventdata, handles);
 moveCursor(hObject);
 
-lhl = light('Color', [.5 .5 .5], 'Parent', handles.axes3d);
-lhr = light('Color', [.5 .5 .5], 'Parent', handles.axes3d);
-camlight(lhl, 'left');
-camlight(lhr, 'right');
+lhul = light('Color', [1 1 1] * .5, 'Parent', handles.axes3d);
+lhur = light('Color', [1 1 1] * .5, 'Parent', handles.axes3d);
+camlight(lhul, 'left');
+camlight(lhur, 'right');
+
+lhll = light('Color', [1 1 1] * .2, 'Parent', handles.axes3d);
+lhlr = light('Color', [1 1 1] * .2, 'Parent', handles.axes3d);
+camlight(lhll, 150, -30);
+camlight(lhlr, 210, -30);
 
 
 % --- Outputs from this function are returned to the command line.
@@ -278,7 +284,7 @@ guidata(hObject, handles);
 function plot3d(hObject)
 handles = guidata(hObject);
 
-[f,v] = isosurface(handles.state.shape, 0);
+[f,v] = isosurface(-handles.state.shape, 0);
 set(handles.patch3d, 'Faces', f, 'Vertices', v);
 axis(handles.axes3d, 'off', 'equal', 'vis3d');
 set(handles.axes3d, 'XLim', [min(v(:,1)) max(v(:,1))], ...
