@@ -91,6 +91,7 @@ end
 
 % GUI state
 handles.state.cursor = fix(handles.model.dimensions ./ 2);
+handles.state.rotate3d = false;
 
 % 2-D plots initialization
 colormap('gray');
@@ -456,3 +457,30 @@ elseif pointer(1) > xzpos(1) && pointer(1) < xzpos(1) + xzpos(3) && ...
 end
 
 moveCursor(hObject);
+
+
+% --- Executes on mouse motion over figure - except title and menu.
+function main_WindowButtonMotionFcn(hObject, eventdata, handles)
+% hObject    handle to main (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+pointer = get(hObject, 'CurrentPoint');
+
+panelpos = get(handles.panel3d, 'Position');
+pos = get(handles.axes3d, 'Position');
+pos(1:2) = panelpos(1:2) + pos(1:2);
+
+% Within 3-D figure
+if pointer(1) > pos(1) && pointer(1) < pos(1) + pos(3) && ...
+    pointer(2) > pos(2) && pointer(2) < pos(2) + pos(4)
+  if ~handles.state.rotate3d
+    handles.state.rotate3d = true;
+    rotate3d(handles.axes3d, 'on');
+  end
+else
+  rotate3d(handles.axes3d, 'off');
+  handles.state.rotate3d = false;
+end
+
+guidata(hObject, handles);
