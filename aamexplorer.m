@@ -164,7 +164,10 @@ function main_ResizeFcn(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+minpos = [0 0 214 50];
+
 pos = get(hObject, 'Position');
+pos = max(pos, minpos);
 width = pos(3);
 height = pos(4);
 
