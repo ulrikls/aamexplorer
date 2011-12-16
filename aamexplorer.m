@@ -51,6 +51,8 @@ end
 % End initialization code - DO NOT EDIT
 
 
+
+
 % --- Executes just before aamexplorer is made visible.
 function aamexplorer_OpeningFcn(hObject, eventdata, handles, varargin)
 % This function has no output args, see OutputFcn.
@@ -101,18 +103,21 @@ handles.cursorxy1 = line('Parent', handles.axesxy, 'Color', [.4 .8 1], 'LineStyl
 handles.cursorxy2 = line('Parent', handles.axesxy, 'Color', [.4 .8 1], 'LineStyle', ':', 'XLimInclude', 'off', 'YLimInclude', 'off');
 set(handles.axesxy, 'YDir', 'normal', 'XDir', 'reverse', 'NextPlot', 'add', 'CLim', [-450 1050], 'CLimInclude', 'off');
 handles.contourxy = 0;
+handles.meanxy = 0;
 
 handles.imageyz = image('Parent', handles.axesyz, 'CDataMapping', 'scaled');
 handles.cursoryz1 = line('Parent', handles.axesyz, 'Color', [.4 .8 1], 'LineStyle', ':', 'XLimInclude', 'off', 'YLimInclude', 'off');
 handles.cursoryz2 = line('Parent', handles.axesyz, 'Color', [.4 .8 1], 'LineStyle', ':', 'XLimInclude', 'off', 'YLimInclude', 'off');
 set(handles.axesyz, 'YDir', 'normal', 'XDir', 'reverse', 'NextPlot', 'add', 'CLim', [-450 1050], 'CLimInclude', 'off');
 handles.contouryz = 0;
+handles.meanyz = 0;
 
 handles.imagexz = image('Parent', handles.axesxz, 'CDataMapping', 'scaled');
 handles.cursorxz1 = line('Parent', handles.axesxz, 'Color', [.4 .8 1], 'LineStyle', ':', 'XLimInclude', 'off', 'YLimInclude', 'off');
 handles.cursorxz2 = line('Parent', handles.axesxz, 'Color', [.4 .8 1], 'LineStyle', ':', 'XLimInclude', 'off', 'YLimInclude', 'off');
 set(handles.axesxz, 'YDir', 'normal', 'XDir', 'reverse', 'NextPlot', 'add', 'CLim', [-450 1050], 'CLimInclude', 'off');
 handles.contourxz = 0;
+handles.meanxz = 0;
 
 % 3-D plot initialization
 handles.cursor3dx = line('Parent', handles.axes3d, 'Color', [0 0 1], 'LineStyle', '--', 'XLimInclude', 'off', 'YLimInclude', 'off');
@@ -133,9 +138,12 @@ guidata(hObject, handles);
 % UIWAIT makes aamexplorer wait for user response (see UIRESUME)
 % uiwait(handles.main);
 
+% State initialization
+handles.state.mshape = reshape(handles.model.mshape, handles.model.dimensions);
 param_Callback(hObject, eventdata, handles);
 moveCursor(hObject);
 
+% Lighting in 3-D rendering
 lhul = light('Color', [1 1 1] * .5, 'Parent', handles.axes3d);
 lhur = light('Color', [1 1 1] * .5, 'Parent', handles.axes3d);
 camlight(lhul, 'left');
@@ -147,6 +155,8 @@ camlight(lhll, 150, -30);
 camlight(lhlr, 210, -30);
 
 
+
+
 % --- Outputs from this function are returned to the command line.
 function varargout = aamexplorer_OutputFcn(hObject, eventdata, handles)
 % varargout  cell array for returning output args (see VARARGOUT);
@@ -156,6 +166,8 @@ function varargout = aamexplorer_OutputFcn(hObject, eventdata, handles)
 
 % Get default command line output from handles structure
 varargout{1} = handles.output;
+
+
 
 
 % --- Executes when main is resized.
@@ -176,6 +188,7 @@ margin = [16 8 8 8];
 panelw = fix((width-pw)/2);
 panelh = fix(height/2);
 
+% UI elements
 set(handles.panelparam, 'Position', [1, 1, pw, height]);
 set(handles.panelxy, 'Position', [pw+1,        panelh+1, panelw, panelh]);
 set(handles.panelyz, 'Position', [pw+panelw+1, panelh+1, panelw, panelh]);
@@ -189,11 +202,14 @@ set(handles.buttonreset,   'Position', [8,  height-37, 78, 21]);
 set(handles.buttoninitial, 'Position', [94, height-37, 78, 21]);
 set(handles.textcursor, 'Position', [8 8 164 13]);
 
+% Parameter sliders
 if isfield(handles, 'param')
   for i=1:length(handles.param)
     set(handles.param{i}, 'Position', [8, height-(37 + i*23) , 164, 15]);
   end
 end
+
+
 
 
 % --- Executes on parameter slider movement.
@@ -205,88 +221,134 @@ function param_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'Value') returns position of slider
 %        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
 
+% Get parameter values
 c = zeros(length(handles.model.sigma2c),1);
 for i=1:length(handles.param)
   c(i) = get(handles.param{i}, 'Value');
 end
 c = c .* sqrt(handles.model.sigma2c);
 
+% Update state
 handles.state.shape = reshape(handles.model.mshape + handles.model.Qshape * c, ...
   handles.model.dimensions);
 handles.state.gray = reshape(handles.model.mgray + handles.model.Qgray * c, ...
   handles.model.dimensions);
 
+% Save
 guidata(hObject, handles);
 
+% Plot
 plotxy(hObject);
 plotyz(hObject);
 plotxz(hObject);
-
-% 3-D
 plot3d(hObject);
+
+
 
 
 function plotxy(hObject)
 handles = guidata(hObject);
 
+% Slicing
 slice = round(handles.state.cursor(3));
 shape = permute(squeeze(handles.state.shape(:,:,slice)), [2 1]);
+mshape = permute(squeeze(handles.state.mshape(:,:,slice)), [2 1]);
 gray = permute(squeeze(handles.state.gray(:,:,slice)), [2 1]);
 
+% Texture
 set(handles.imagexy, 'CData', gray);
 axis(handles.axesxy, 'off', 'equal');
 
+% Mean shape
+if handles.meanxy
+  delete(handles.meanxy);
+  handles.meanxy = 0;
+end
+[~,handles.meanxy] = contour(handles.axesxy, mshape, [0 0], 'r');
+
+% Shape
 if handles.contourxy
   delete(handles.contourxy);
   handles.contourxy = 0;
 end
 [~,handles.contourxy] = contour(handles.axesxy, shape, [0 0], 'g');
 
+% Save
 guidata(hObject, handles);
+
+
 
 
 function plotyz(hObject)
 handles = guidata(hObject);
 
+% Slicing
 slice = round(handles.state.cursor(1));
 shape = permute(squeeze(handles.state.shape(slice,:,:)), [2 1]);
+mshape = permute(squeeze(handles.state.mshape(slice,:,:)), [2 1]);
 gray = permute(squeeze(handles.state.gray(slice,:,:)), [2 1]);
 
+% Texture
 set(handles.imageyz, 'CData', gray);
 axis(handles.axesyz, 'off', 'equal');
 
+% Mean shape
+if handles.meanyz
+  delete(handles.meanyz);
+  handles.meanyz = 0;
+end
+[~,handles.meanyz] = contour(handles.axesyz, mshape, [0 0], 'r');
+
+% Shape
 if handles.contouryz
   delete(handles.contouryz);
   handles.contouryz = 0;
 end
 [~,handles.contouryz] = contour(handles.axesyz, shape, [0 0], 'g');
 
+% Save
 guidata(hObject, handles);
+
+
 
 
 function plotxz(hObject)
 handles = guidata(hObject);
 
-% X-Z
+% Slicing
 slice = round(handles.state.cursor(2));
 shape = permute(squeeze(handles.state.shape(:,slice,:)), [2 1]);
+mshape = permute(squeeze(handles.state.mshape(:,slice,:)), [2 1]);
 gray = permute(squeeze(handles.state.gray(:,slice,:)), [2 1]);
 
+% Texture
 set(handles.imagexz, 'CData', gray);
 axis(handles.axesxz, 'off', 'equal');
 
+% Mean shape
+if handles.meanxz
+  delete(handles.meanxz);
+  handles.meanxz = 0;
+end
+[~,handles.meanxz] = contour(handles.axesxz, mshape, [0 0], 'r');
+
+% Shape
 if handles.contourxz
   delete(handles.contourxz);
   handles.contourxz = 0;
 end
 [~,handles.contourxz] = contour(handles.axesxz, shape, [0 0], 'g');
 
+% Save
 guidata(hObject, handles);
+
+
 
 
 function plot3d(hObject)
 handles = guidata(hObject);
 
+% Render
 [f,v] = isosurface(-handles.state.shape, 0);
 set(handles.patch3d, 'Faces', f, 'Vertices', v);
 axis(handles.axes3d, 'off', 'equal', 'vis3d');
@@ -294,7 +356,10 @@ set(handles.axes3d, 'XLim', [min(v(:,1)) max(v(:,1))], ...
   'YLim', [min(v(:,2)) max(v(:,2))], ...
   'ZLim', [min(v(:,3)) max(v(:,3))]);
 
+% Save
 guidata(hObject, handles);
+
+
 
 
 function moveCursor(hObject)
@@ -309,8 +374,10 @@ xlimit = [-100 2*xlimit(2)];
 ylimit = [-100 2*ylimit(2)];
 zlimit = [-100 2*zlimit(2)];
 
+% Cursor text
 set(handles.textcursor, 'String', sprintf('Cursor (x,y,z): %g, %g, %g\n', cursor(1), cursor(2), cursor(3)));
 
+% 3-D
 set(handles.cursor3dx, 'YData', [cursor(1) cursor(1)], ...
   'XData', [cursor(2) cursor(2)], 'ZData', zlimit);
 set(handles.cursor3dy, 'YData', xlimit, ...
@@ -318,16 +385,22 @@ set(handles.cursor3dy, 'YData', xlimit, ...
 set(handles.cursor3dz, 'YData', [cursor(1) cursor(1)], ...
   'XData', ylimit, 'ZData', [cursor(3) cursor(3)]);
 
+% X-Y
 set(handles.cursorxy1, 'XData', [cursor(1) cursor(1)], 'YData', get(handles.axesxy, 'YLim'));
 set(handles.cursorxy2, 'XData', get(handles.axesxy, 'XLim'), 'YData', [cursor(2) cursor(2)]);
 
+% Y-Z
 set(handles.cursoryz1, 'XData', [cursor(2) cursor(2)], 'YData', get(handles.axesyz, 'YLim'));
 set(handles.cursoryz2, 'XData', get(handles.axesyz, 'XLim'), 'YData', [cursor(3) cursor(3)]);
 
+% X-Z
 set(handles.cursorxz1, 'XData', [cursor(1) cursor(1)], 'YData', get(handles.axesxz, 'YLim'));
 set(handles.cursorxz2, 'XData', get(handles.axesxz, 'XLim'), 'YData', [cursor(3) cursor(3)]);
 
+% Save
 guidata(hObject, handles);
+
+
 
 
 % --- Executes on button press in buttonreset.
@@ -342,6 +415,8 @@ end
 param_Callback(hObject, eventdata, handles);
 
 
+
+
 % --- Executes on button press in buttoninitial.
 function buttoninitial_Callback(hObject, eventdata, handles)
 % hObject    handle to buttoninitial (see GCBO)
@@ -353,6 +428,8 @@ for i=1:length(handles.param)
   set(handles.param{i}, 'Value', c(i));
 end
 param_Callback(hObject, eventdata, handles);
+
+
 
 
 % --- Executes on scroll wheel click while the figure is in focus.
@@ -403,6 +480,8 @@ elseif pointer(1) > xzpos(1) && pointer(1) < xzpos(1) + xzpos(3) && ...
 end
 
 moveCursor(hObject);
+
+
 
 
 % --- Executes on mouse press over figure background, over a disabled or
@@ -466,6 +545,8 @@ elseif pointer(1) > xzpos(1) && pointer(1) < xzpos(1) + xzpos(3) && ...
 end
 
 moveCursor(hObject);
+
+
 
 
 % --- Executes on mouse motion over figure - except title and menu.
