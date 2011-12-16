@@ -94,6 +94,7 @@ end
 % GUI state
 handles.state.cursor = fix(handles.model.dimensions ./ 2);
 handles.state.rotate3d = false;
+handles.state.showmeanshape = true;
 
 % 2-D plots initialization
 colormap('gray');
@@ -200,6 +201,7 @@ set(handles.axes3d, 'Position', [margin(4), margin(3), panelw-margin(2)-margin(4
 set(handles.axesxz, 'Position', [margin(4), margin(3), panelw-margin(2)-margin(4), panelh-margin(1)-margin(3)]);
 set(handles.buttonreset,   'Position', [8,  height-37, 78, 21]);
 set(handles.buttoninitial, 'Position', [94, height-37, 78, 21]);
+set(handles.togglemeanshape, 'Position', [8 25 164 23]);
 set(handles.textcursor, 'Position', [8 8 164 13]);
 
 % Parameter sliders
@@ -264,7 +266,9 @@ if handles.meanxy
   delete(handles.meanxy);
   handles.meanxy = 0;
 end
-[~,handles.meanxy] = contour(handles.axesxy, mshape, [0 0], 'r');
+if handles.state.showmeanshape
+  [~,handles.meanxy] = contour(handles.axesxy, mshape, [0 0], 'r');
+end
 
 % Shape
 if handles.contourxy
@@ -297,7 +301,9 @@ if handles.meanyz
   delete(handles.meanyz);
   handles.meanyz = 0;
 end
-[~,handles.meanyz] = contour(handles.axesyz, mshape, [0 0], 'r');
+if handles.state.showmeanshape
+  [~,handles.meanyz] = contour(handles.axesyz, mshape, [0 0], 'r');
+end
 
 % Shape
 if handles.contouryz
@@ -330,7 +336,9 @@ if handles.meanxz
   delete(handles.meanxz);
   handles.meanxz = 0;
 end
-[~,handles.meanxz] = contour(handles.axesxz, mshape, [0 0], 'r');
+if handles.state.showmeanshape
+  [~,handles.meanxz] = contour(handles.axesxz, mshape, [0 0], 'r');
+end
 
 % Shape
 if handles.contourxz
@@ -574,3 +582,22 @@ else
 end
 
 guidata(hObject, handles);
+
+
+% --- Executes on button press in togglemeanshape.
+function togglemeanshape_Callback(hObject, eventdata, handles)
+% hObject    handle to togglemeanshape (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of togglemeanshape
+
+handles.state.showmeanshape = get(hObject, 'Value');
+
+% Save
+guidata(hObject, handles);
+
+% Plot
+plotxy(hObject);
+plotyz(hObject);
+plotxz(hObject);
