@@ -94,7 +94,7 @@ end
 % GUI state
 handles.state.cursor = fix(handles.model.dimensions ./ 2);
 handles.state.rotate3d = false;
-handles.state.showmeanshape = true;
+handles.state.showmeanshape = false;
 
 % 2-D plots initialization
 colormap('gray');
