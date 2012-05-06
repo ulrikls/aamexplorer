@@ -62,7 +62,7 @@ function aamexplorer_OpeningFcn(hObject, eventdata, handles, varargin)
 % varargin   command line arguments to aamexplorer (see VARARGIN)
 
 % Variables: mshape, mgray, Qshape, Qgray, sigma2c, dimensions, [c]
-if size(varargin,2) < 6 && isstruct(varargin{1})
+if ~isempty(varargin) && size(varargin,2) < 6 && isstruct(varargin{1})
   handles.model = varargin{1};
   if size(varargin,2) > 1
     handles.model.c = varargin{2};
@@ -208,6 +208,11 @@ set(handles.textcursor, 'Position', [8 8 164 13]);
 if isfield(handles, 'param')
   for i=1:length(handles.param)
     set(handles.param{i}, 'Position', [8, height-(37 + i*23) , 164, 15]);
+    if height-(37 + i*23) < 48
+      set(handles.param{i}, 'Visible', 'off');
+    else
+      set(handles.param{i}, 'Visible', 'on');
+    end
   end
 end
 
