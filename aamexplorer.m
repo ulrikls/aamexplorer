@@ -106,6 +106,7 @@ for i=1:length(handles.model.sigma2c)
     'Position'     , [0 0 129 15], ...
     'Tag'          , sprintf('param%g', i), ...
     'TooltipString', sprintf('Parameter %g', i));
+  addlistener(handles.paramslider{i}, 'ContinuousValueChange', @(hObject,eventdata)aamexplorer('param_Callback',hObject,eventdata,guidata(hObject)));
 end
 
 % GUI state
