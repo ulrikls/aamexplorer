@@ -98,10 +98,9 @@ for i=1:length(handles.model.sigma2c)
   handles.paramslider{i} = uicontrol(...
     'Style'        , 'slider', ...
     'Units'        , 'pixels', ...
-    'Min'          , -2, ...
-    'Max'          , 2, ...
+    'Min'          , -3, ...
+    'Max'          , 3, ...
     'Value'        , handles.model.c(i) / sqrt(handles.model.sigma2c(i)), ...
-    'Callback'     , @(hObject,eventdata)aamexplorer('param_Callback',hObject,eventdata,guidata(hObject)), ...
     'parent'       , handles.param{i}, ...
     'Position'     , [0 0 129 15], ...
     'Tag'          , sprintf('param%g', i), ...
@@ -117,35 +116,39 @@ handles.state.showmeanshape = false;
 % 2-D plots initialization
 colormap('gray');
 
-handles.imagexy = image('Parent', handles.axesxy, 'CDataMapping', 'scaled');
-handles.cursorxy1 = line('Parent', handles.axesxy, 'Color', [.4 .8 1], 'LineStyle', ':', 'XLimInclude', 'off', 'YLimInclude', 'off');
-handles.cursorxy2 = line('Parent', handles.axesxy, 'Color', [.4 .8 1], 'LineStyle', ':', 'XLimInclude', 'off', 'YLimInclude', 'off');
+handles.imagexy = image('Parent', handles.axesxy, 'CDataMapping', 'scaled', 'XLimInclude', 'on', 'YLimInclude', 'on', 'ZLimInclude', 'off', 'ALimInclude', 'off', 'CLimInclude', 'off');
+handles.cursorxy1 = line('Parent', handles.axesxy, 'Color', [.4 .8 1], 'LineStyle', ':', 'XLimInclude', 'off', 'YLimInclude', 'off', 'ZLimInclude', 'off', 'ALimInclude', 'off', 'CLimInclude', 'off');
+handles.cursorxy2 = line('Parent', handles.axesxy, 'Color', [.4 .8 1], 'LineStyle', ':', 'XLimInclude', 'off', 'YLimInclude', 'off', 'ZLimInclude', 'off', 'ALimInclude', 'off', 'CLimInclude', 'off');
 set(handles.axesxy, 'YDir', 'normal', 'XDir', 'reverse', 'NextPlot', 'add', 'CLim', [-450 1050], 'CLimInclude', 'off');
 handles.contourxy = 0;
 handles.meanxy = 0;
 
-handles.imageyz = image('Parent', handles.axesyz, 'CDataMapping', 'scaled');
-handles.cursoryz1 = line('Parent', handles.axesyz, 'Color', [.4 .8 1], 'LineStyle', ':', 'XLimInclude', 'off', 'YLimInclude', 'off');
-handles.cursoryz2 = line('Parent', handles.axesyz, 'Color', [.4 .8 1], 'LineStyle', ':', 'XLimInclude', 'off', 'YLimInclude', 'off');
+handles.imageyz = image('Parent', handles.axesyz, 'CDataMapping', 'scaled', 'XLimInclude', 'on', 'YLimInclude', 'on', 'ZLimInclude', 'off', 'ALimInclude', 'off', 'CLimInclude', 'off');
+handles.cursoryz1 = line('Parent', handles.axesyz, 'Color', [.4 .8 1], 'LineStyle', ':', 'XLimInclude', 'off', 'YLimInclude', 'off', 'ZLimInclude', 'off', 'ALimInclude', 'off', 'CLimInclude', 'off');
+handles.cursoryz2 = line('Parent', handles.axesyz, 'Color', [.4 .8 1], 'LineStyle', ':', 'XLimInclude', 'off', 'YLimInclude', 'off', 'ZLimInclude', 'off', 'ALimInclude', 'off', 'CLimInclude', 'off');
 set(handles.axesyz, 'YDir', 'normal', 'XDir', 'reverse', 'NextPlot', 'add', 'CLim', [-450 1050], 'CLimInclude', 'off');
 handles.contouryz = 0;
 handles.meanyz = 0;
 
-handles.imagexz = image('Parent', handles.axesxz, 'CDataMapping', 'scaled');
-handles.cursorxz1 = line('Parent', handles.axesxz, 'Color', [.4 .8 1], 'LineStyle', ':', 'XLimInclude', 'off', 'YLimInclude', 'off');
-handles.cursorxz2 = line('Parent', handles.axesxz, 'Color', [.4 .8 1], 'LineStyle', ':', 'XLimInclude', 'off', 'YLimInclude', 'off');
+handles.imagexz = image('Parent', handles.axesxz, 'CDataMapping', 'scaled', 'XLimInclude', 'on', 'YLimInclude', 'on', 'ZLimInclude', 'off', 'ALimInclude', 'off', 'CLimInclude', 'off');
+handles.cursorxz1 = line('Parent', handles.axesxz, 'Color', [.4 .8 1], 'LineStyle', ':', 'XLimInclude', 'off', 'YLimInclude', 'off', 'ZLimInclude', 'off', 'ALimInclude', 'off', 'CLimInclude', 'off');
+handles.cursorxz2 = line('Parent', handles.axesxz, 'Color', [.4 .8 1], 'LineStyle', ':', 'XLimInclude', 'off', 'YLimInclude', 'off', 'ZLimInclude', 'off', 'ALimInclude', 'off', 'CLimInclude', 'off');
 set(handles.axesxz, 'YDir', 'normal', 'XDir', 'reverse', 'NextPlot', 'add', 'CLim', [-450 1050], 'CLimInclude', 'off');
 handles.contourxz = 0;
 handles.meanxz = 0;
 
 % 3-D plot initialization
-handles.cursor3dx = line('Parent', handles.axes3d, 'Color', [0 0 1], 'LineStyle', '--', 'XLimInclude', 'off', 'YLimInclude', 'off');
-handles.cursor3dy = line('Parent', handles.axes3d, 'Color', [0 0 1], 'LineStyle', '--', 'XLimInclude', 'off', 'YLimInclude', 'off');
-handles.cursor3dz = line('Parent', handles.axes3d, 'Color', [0 0 1], 'LineStyle', '--', 'XLimInclude', 'off', 'YLimInclude', 'off');
+handles.cursor3dx = line('Parent', handles.axes3d, 'Color', [0 0 1], 'LineStyle', '--', 'XLimInclude', 'off', 'YLimInclude', 'off', 'ZLimInclude', 'off', 'ALimInclude', 'off', 'CLimInclude', 'off');
+handles.cursor3dy = line('Parent', handles.axes3d, 'Color', [0 0 1], 'LineStyle', '--', 'XLimInclude', 'off', 'YLimInclude', 'off', 'ZLimInclude', 'off', 'ALimInclude', 'off', 'CLimInclude', 'off');
+handles.cursor3dz = line('Parent', handles.axes3d, 'Color', [0 0 1], 'LineStyle', '--', 'XLimInclude', 'off', 'YLimInclude', 'off', 'ZLimInclude', 'off', 'ALimInclude', 'off', 'CLimInclude', 'off');
 handles.patch3d = patch('FaceColor', [0 1 0], 'EdgeColor', 'none', 'Parent', handles.axes3d, ...
   'FaceLighting', 'gouraud', 'EdgeLighting', 'gouraud', 'BackFaceLighting', 'lit', ...
-  'AmbientStrength', 0.3, 'DiffuseStrength', 0.8, 'SpecularStrength', 0.0, 'SpecularExponent', 10, 'SpecularColorReflectance', 1.0);
-set(handles.axes3d, 'YDir', 'reverse');
+  'AmbientStrength', 0.3, 'DiffuseStrength', 0.8, 'SpecularStrength', 0.0, 'SpecularExponent', 10, 'SpecularColorReflectance', 1.0, ...
+  'XLimInclude', 'off', 'YLimInclude', 'off', 'ZLimInclude', 'off', 'ALimInclude', 'off', 'CLimInclude', 'off');
+set(handles.axes3d, 'YDir', 'reverse', ...
+  'XLim', [0 handles.model.dimensions(1)], ...
+  'YLim', [0 handles.model.dimensions(2)], ...
+  'ZLim', [0 handles.model.dimensions(3)]);
 view(handles.axes3d, 3);
 
 % Choose default command line output for aamexplorer
@@ -234,6 +237,11 @@ if isfield(handles, 'param')
   end
 end
 
+% Axis limits
+axis(handles.axesxy, 'off', 'equal');
+axis(handles.axesyz, 'off', 'equal');
+axis(handles.axesxz, 'off', 'equal');
+
 
 
 
@@ -290,7 +298,8 @@ if handles.meanxy
   handles.meanxy = 0;
 end
 if handles.state.showmeanshape
-  [~,handles.meanxy] = contour(handles.axesxy, mshape, [0 0], 'r');
+  [~,handles.meanxy] = contour(handles.axesxy, mshape, [0 0], 'r', ...
+    'XLimInclude', 'off', 'YLimInclude', 'off', 'ZLimInclude', 'off', 'ALimInclude', 'off', 'CLimInclude', 'off');
 end
 
 % Shape
@@ -298,7 +307,8 @@ if handles.contourxy
   delete(handles.contourxy);
   handles.contourxy = 0;
 end
-[~,handles.contourxy] = contour(handles.axesxy, shape, [0 0], 'g');
+[~,handles.contourxy] = contour(handles.axesxy, shape, [0 0], 'g', ...
+  'XLimInclude', 'off', 'YLimInclude', 'off', 'ZLimInclude', 'off', 'ALimInclude', 'off', 'CLimInclude', 'off');
 
 % Save
 guidata(hObject, handles);
@@ -325,7 +335,8 @@ if handles.meanyz
   handles.meanyz = 0;
 end
 if handles.state.showmeanshape
-  [~,handles.meanyz] = contour(handles.axesyz, mshape, [0 0], 'r');
+  [~,handles.meanyz] = contour(handles.axesyz, mshape, [0 0], 'r', ...
+    'XLimInclude', 'off', 'YLimInclude', 'off', 'ZLimInclude', 'off', 'ALimInclude', 'off', 'CLimInclude', 'off');
 end
 
 % Shape
@@ -333,7 +344,8 @@ if handles.contouryz
   delete(handles.contouryz);
   handles.contouryz = 0;
 end
-[~,handles.contouryz] = contour(handles.axesyz, shape, [0 0], 'g');
+[~,handles.contouryz] = contour(handles.axesyz, shape, [0 0], 'g', ...
+  'XLimInclude', 'off', 'YLimInclude', 'off', 'ZLimInclude', 'off', 'ALimInclude', 'off', 'CLimInclude', 'off');
 
 % Save
 guidata(hObject, handles);
@@ -360,7 +372,8 @@ if handles.meanxz
   handles.meanxz = 0;
 end
 if handles.state.showmeanshape
-  [~,handles.meanxz] = contour(handles.axesxz, mshape, [0 0], 'r');
+  [~,handles.meanxz] = contour(handles.axesxz, mshape, [0 0], 'r', ...
+    'XLimInclude', 'off', 'YLimInclude', 'off', 'ZLimInclude', 'off', 'ALimInclude', 'off', 'CLimInclude', 'off');
 end
 
 % Shape
@@ -368,7 +381,8 @@ if handles.contourxz
   delete(handles.contourxz);
   handles.contourxz = 0;
 end
-[~,handles.contourxz] = contour(handles.axesxz, shape, [0 0], 'g');
+[~,handles.contourxz] = contour(handles.axesxz, shape, [0 0], 'g', ...
+  'XLimInclude', 'off', 'YLimInclude', 'off', 'ZLimInclude', 'off', 'ALimInclude', 'off', 'CLimInclude', 'off');
 
 % Save
 guidata(hObject, handles);
@@ -383,9 +397,6 @@ handles = guidata(hObject);
 [f,v] = isosurface(-handles.state.shape, 0);
 set(handles.patch3d, 'Faces', f, 'Vertices', v);
 axis(handles.axes3d, 'off', 'equal', 'vis3d');
-set(handles.axes3d, 'XLim', [min(v(:,1)) max(v(:,1))], ...
-  'YLim', [min(v(:,2)) max(v(:,2))], ...
-  'ZLim', [min(v(:,3)) max(v(:,3))]);
 
 % Save
 guidata(hObject, handles);
@@ -397,13 +408,9 @@ function moveCursor(hObject)
 handles = guidata(hObject);
 
 cursor = handles.state.cursor;
-ax = handles.axes3d;
-xlimit = get(ax, 'XLim');
-ylimit = get(ax, 'YLim');
-zlimit = get(ax, 'ZLim');
-xlimit = [-100 2*xlimit(2)];
-ylimit = [-100 2*ylimit(2)];
-zlimit = [-100 2*zlimit(2)];
+xlimit = [-100 3*handles.model.dimensions(1)];
+ylimit = [-100 3*handles.model.dimensions(2)];
+zlimit = [-100 3*handles.model.dimensions(3)];
 
 % Cursor text
 set(handles.textcursor, 'String', sprintf('Cursor (x,y,z): %g, %g, %g\n', cursor(1), cursor(2), cursor(3)));
